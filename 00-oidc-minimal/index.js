@@ -1,30 +1,34 @@
-const assert = require('assert');
-const Provider = require('oidc-provider');
+const { Provider } = require('oidc-provider');
 
-assert(process.env.HEROKU_APP_NAME, 'process.env.HEROKU_APP_NAME missing');
-assert(process.env.PORT, 'process.env.PORT missing');
-assert(process.env.SECURE_KEY, 'process.env.SECURE_KEY missing, run `heroku addons:create securekey`');
-assert.equal(process.env.SECURE_KEY.split(',').length, 2, 'process.env.SECURE_KEY format invalid');
-
-// new Provider instance with no extra configuration, will run in default, just needs the issuer
-// identifier, uses data from runtime-dyno-metadata heroku here
-const oidc = new Provider(`https://${process.env.HEROKU_APP_NAME}.herokuapp.com`, {
-  clients: [
-    {
-      client_id: 'foo',
-      redirect_uris: ['https://jwt.io'], // using jwt.io as redirect_uri to show the ID Token contents
-      response_types: ['id_token'],
-      grant_types: ['implicit'],
-      token_endpoint_auth_method: 'none',
-    },
-  ],
-  cookies: {
-    keys: process.env.SECURE_KEY.split(','),
+const clients = [
+  {
+    client_id: 'maplcredit-equifax',
+    client_secret: '78cecf280d98897b9d4e36ea5e91b355a9c342e62633aa3c73487b7fbdf3066d',
+    grant_types: ['authorization_code'],
+    redirect_uris: ['https://equifax.com/callback'], // Replace with real Equifax redirect URI
+    response_types: ['code'],
+    token_endpoint_auth_method: 'client_secret_post',
   },
-});
+];
 
-// Heroku has a proxy in front that terminates ssl, you should trust the proxy.
+const configuration = {
+  clients,
+  features: {
+    devInteractions: { enabled: false },
+  },
+  cookies: {
+    keys: ['some long random string', 'another long random string'], // optional: rotate every few months
+  },
+};
+
+const issuer = process.env.ISSUER || 'http://localhost:3000';
+const oidc = new Provider(issuer, configuration);
+
+// If behind proxy (like Railway), trust proxy headers
 oidc.proxy = true;
 
-// listen on the heroku generated port
-oidc.listen(process.env.PORT);
+// Start the server
+const PORT = process.env.PORT || 3000;
+oidc.listen(PORT, () => {
+  console.log(`OIDC Provider listening on ${issuer}`);
+});

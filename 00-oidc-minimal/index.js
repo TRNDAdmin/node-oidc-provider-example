@@ -21,7 +21,8 @@ const configuration = {
   },
 };
 
-const issuer = process.env.ISSUER || 'http://localhost:3000';
+const issuer = process.env.ISSUER || '"https://web-production-b6ba4.up.railway.app"
+';
 const oidc = new Provider(issuer, configuration);
 
 // If behind proxy (like Railway), trust proxy headers

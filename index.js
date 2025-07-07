@@ -3,7 +3,7 @@ const { Provider } = require('oidc-provider');
 const clients = [
   {
     client_id: 'maplcredit-equifax',
-    client_secret: 'REPLACE_THIS_WITH_YOUR_SECRET',
+    client_secret: process.env.CLIENT_SECRET,
     grant_types: ['authorization_code'],
     redirect_uris: ['https://equifax.com/callback'],
     response_types: ['code'],
